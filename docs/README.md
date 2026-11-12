@@ -27,7 +27,7 @@
 
 | 要查什么 | 阅读入口 |
 | --- | --- |
-| 协议检查结果与尚未验证的效果 | [验证摘要](验证摘要.md) |
+| 协议检查结果与待完成验证 | [验证摘要](验证摘要.md) |
 | 脚本的合成输入与运行结果 | [示例说明](../examples/README.md) |
 | 显式记录检查 CLI 与局部 Stop 实验 | [功能入口](../skills/work-eval/references/cli-reference.md) · [输入协议](../skills/work-eval/references/record-checking-protocol.md) |
 | 需要防范的失败及其验证入口 | [问题与失败清单](问题与失败清单.md) |
