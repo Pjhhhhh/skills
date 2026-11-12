@@ -22,13 +22,13 @@ description: 代码开发、文档修改填写、电脑操作和资料研究的�
 
 1. **明确完整责任。** 从原请求、有效纠正和专项技能中确定必要结果、职责与权限，将用户已给的失败例、必要调用场景与检查范围纳入验收目标，在已有材料中保留依据。涉及已定业务决定或新增条件时，按[需求确认与实施边界](references/execution-and-recovery.md#需求确认与实施边界)核对有效回答及依据。
 2. **选用必要方法。** 需要工程诊断、规格与任务安排、按规格实施或规范与规格审查时，按[Matt Pocock接入规则](references/matt-pocock.md)选择技能；需要驱动实际应用、生成或维护验证入口、性能测量、变更影响或约束反复错误时，按[pstack接入规则](references/pstack.md)选择技能。只读取当前需要的分支，将专项结果用于本任务的执行与验收。
-3. **执行并验证。** 直接打开交付物、读取实际字段或状态，按项目策略运行真实行为检查。生成文件修改源后重新生成；打包、服务及外部调用按现有授权执行。耗时工具转后台或需要取消、重试时，按[后台执行与恢复](references/execution-and-recovery.md#后台执行与恢复)接回实际任务；修改规则、技能或运行配置及升级第三方组件时，按[生效状态与配置升级](references/execution-and-recovery.md#生效状态与配置升级)核对受影响的加载状态。
+3. **执行并验证。** 直接打开交付物、读取实际字段或状态，按项目策略运行真实行为检查。分析相互关联的资料时，按[主张核查](references/execution-and-recovery.md#主张核查)核对读取范围、关联内容和分析结论。生成文件修改源后重新生成；打包、服务及外部调用按现有授权执行。耗时工具转后台或需要取消、重试时，按[后台执行与恢复](references/execution-and-recovery.md#后台执行与恢复)接回实际任务；修改规则、技能或运行配置及升级第三方组件时，按[生效状态与配置升级](references/execution-and-recovery.md#生效状态与配置升级)核对受影响的加载状态。
 4. **按需要复核。** 用户或项目明确要求，或存在高影响、难以恢复、关键证据冲突时，安排只读独立复核。评审者直接读取原要求、有效纠正、工件与差异，自行判断应达结果，并按[主张核查](references/execution-and-recovery.md#主张核查)核对验收目标、实际检查与证据的对应关系。继续处理可修问题，判据问题按[判据更正](references/execution-and-recovery.md#判据更正)核实并复验。
 5. **按实际结果交付。** 依据实际检查覆盖及其证据判断必要结果与检查是否完成，完成后结束，说明仍影响使用的失败或未完成项。沿用有效证据，变化使结论失效时复验相关内容。必要独立复核暂时无法执行时，保留具体原因、未完成状态与恢复条件。执行已获授权的提交或推送前，按[Git 提交与推送范围](references/execution-and-recovery.md#git-提交与推送范围)核对共享内容和实际操作范围。
 
 失败、待验证或评审分歧按[回修与跨轮恢复](references/execution-and-recovery.md#回修与跨轮恢复)处理。来源或结论存在不确定性时，按[如何处理“不确定”](references/execution-and-recovery.md#如何处理不确定)核对证据及受影响动作。
 
-交付工件或修订既有结果时，按[交付位置与修订](references/execution-and-recovery.md#交付位置与修订)确认有效工件。测试结束时，按[测试产物收尾](references/execution-and-recovery.md#测试产物收尾)核对保留内容、清理范围及引用。
+交付工件或修订既有结果时，按[交付位置与修订](references/execution-and-recovery.md#交付位置与修订)核对用户用途、有效工件和可用入口。测试结束时，按[测试产物收尾](references/execution-and-recovery.md#测试产物收尾)核对保留内容、清理范围及引用。
 
 默认直接核验实际结果，沿用已有计划、必要日志和交付物。显式选择记录检查 CLI 时，再读[功能入口](references/cli-reference.md)和[输入协议](references/record-checking-protocol.md)，按其要求准备和核对记录。
 
