@@ -11,6 +11,7 @@ graphify-out/
 .env.*
 !.env.example
 .qwen/
+/.agents/skills/skill-upper/
 
 # 本地发布准备清单不属于技能内容
 /release-files.txt
