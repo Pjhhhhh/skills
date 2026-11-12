@@ -28,7 +28,7 @@ description: 代码开发、文档修改填写、电脑操作和资料研究的�
 
 失败、待验证或评审分歧按[回修与跨轮恢复](references/execution-and-recovery.md#回修与跨轮恢复)处理。来源或结论存在不确定性时，按[如何处理“不确定”](references/execution-and-recovery.md#如何处理不确定)核对证据及受影响动作。
 
-交付工件或修订既有结果时，按[交付位置与修订](references/execution-and-recovery.md#交付位置与修订)核对用户用途、有效工件和可用入口。测试结束时，按[测试产物收尾](references/execution-and-recovery.md#测试产物收尾)核对保留内容、清理范围及引用。
+交付工件或修订既有结果时，按[交付位置与修订](references/execution-and-recovery.md#交付位置与修订)核对实际使用者、用途、有效工件和可用入口。测试结束时，按[测试产物收尾](references/execution-and-recovery.md#测试产物收尾)核对保留内容、清理范围及引用。
 
 默认直接核验实际结果，沿用已有计划、必要日志和交付物。显式选择记录检查 CLI 时，再读[功能入口](references/cli-reference.md)和[输入协议](references/record-checking-protocol.md)，按其要求准备和核对记录。
 
