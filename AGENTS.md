@@ -1,7 +1,7 @@
 <!-- @author Pjh -->
 # skills 技能维护
 
-本项目维护可独立安装的 Agent 技能 `work-eval`、`doc-maintenance` 及相关源码和说明。用户级 `~/.agents/skills/work-eval` 链接到本项目的 `skills/work-eval`。规则适用于以项目根目录或其子目录为工作区的新建、恢复及继续中的会话。项目根由 `.skills-root` 标记；规则、技能和脚本路径均相对项目根解释。
+本项目维护可独立安装的 Agent 技能 `work-eval`、`doc-maintenance`、`app-acceptance` 及相关源码和说明。用户级 `~/.agents/skills/work-eval` 链接到本项目的 `skills/work-eval`。规则适用于以项目根目录或其子目录为工作区的新建、恢复及继续中的会话。项目根由 `.skills-root` 标记；规则、技能和脚本路径均相对项目根解释。
 
 通用行为和表达遵守宿主当前有效的全局规则。实质任务读取[默认工作流技能](skills/work-eval/SKILL.md)。创建、读取或更新任务前，按[任务跟踪约定](docs/agents/issue-tracker.md)定位原任务；新计划统一放项目根 `.plan/`，旧记录保留原处。接手时刷新当前项目规则，恢复时核对有效要求、授权和下一动作。规则更新后，让相关会话重读受影响内容。
 

@@ -1,0 +1,94 @@
+<!doctype html>
+<!-- @author Pjh -->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>记录管理验收样例</title>
+  <style>
+    body { margin: 0; background: #f3f5f8; color: #203448; font: 16px/1.5 system-ui, sans-serif; }
+    main { max-width: 800px; margin: 32px auto; padding: 24px; }
+    h1 { margin-top: 0; font-size: 26px; }
+    form, .records { padding: 20px; margin-block: 20px; background: white; border: 1px solid #c8d5df; border-radius: 8px; }
+    input, button { box-sizing: border-box; min-height: 40px; padding: 8px 12px; font: inherit; border: 1px solid #8a9eaf; border-radius: 4px; }
+    input { max-width: 100%; }
+    button { background: #185e96; color: white; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    :focus-visible { outline: 3px solid #1769aa; outline-offset: 3px; }
+    a { color: #185e96; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 12px; border-bottom: 1px solid #d5dfe7; overflow-wrap: anywhere; }
+    th { background: #e7f0f7; }
+    .records { overflow-x: auto; }
+    @media (max-width: 600px) { main { padding: 16px; margin: 0; } label, input, button { display: block; width: 100%; margin-block: 8px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>记录管理</h1>
+    <form id="create-form">
+      <label for="record-name">记录名称</label>
+      <input id="record-name" name="name" required maxlength="80" autocomplete="off">
+      <button type="submit">新增记录</button>
+      <p id="create-state" role="status" aria-live="polite"></p>
+    </form>
+    <section class="records" aria-labelledby="records-heading">
+      <h2 id="records-heading">记录列表</h2>
+      <p id="load-state" role="status" aria-live="polite" data-loaded="false">正在加载…</p>
+      <table aria-label="记录列表">
+        <thead><tr><th scope="col">编号</th><th scope="col">记录名称</th></tr></thead>
+        <tbody id="records-body"></tbody>
+      </table>
+      <p id="empty-state" hidden>尚无记录</p>
+      <a href="/api/records.csv">导出CSV</a>
+    </section>
+  </main>
+  <script>
+    const rows = document.querySelector('#records-body');
+    const empty = document.querySelector('#empty-state');
+    const loadState = document.querySelector('#load-state');
+    let records = [];
+    /** 用实际响应渲染记录与空态。 @author Pjh */
+    function render() {
+      rows.replaceChildren();
+      for (const record of records) {
+        const row = document.createElement('tr');
+        for (const value of [record.id, record.name]) {
+          const cell = document.createElement('td');
+          cell.textContent = value;
+          row.append(cell);
+        }
+        rows.append(row);
+      }
+      empty.hidden = records.length !== 0;
+    }
+    /** 首入与刷新读取同一公开HTTP入口。 @author Pjh */
+    async function load() {
+      try {
+        const response = await fetch('/api/records');
+        if (!response.ok) throw new Error(`读取失败：HTTP ${response.status}`);
+        records = (await response.json()).records;
+        render();
+        loadState.textContent = `已加载 ${records.length} 条记录`;
+        loadState.dataset.loaded = 'true';
+      } catch (error) { loadState.textContent = error.message; }
+    }
+    document.querySelector('#create-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const button = event.target.querySelector('button');
+      const state = document.querySelector('#create-state');
+      button.disabled = true;
+      try {
+        const response = await fetch('/api/records', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: document.querySelector('#record-name').value }) });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error);
+        records.push(body);
+        render();
+        state.textContent = '记录已受理';
+      } catch (error) { state.textContent = error.message; }
+      finally { button.disabled = false; }
+    });
+    load();
+  </script>
+</body>
+</html>

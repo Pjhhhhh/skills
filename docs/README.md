@@ -9,11 +9,13 @@
 | --- | --- |
 | 安装工作流技能 | [work-eval 安装入口](安装与更新.md#安装-work-eval) |
 | 安装文档维护技能 | [doc-maintenance 安装入口](安装与更新.md#安装-doc-maintenance) |
+| 安装应用验收技能及运行真实样例 | [app-acceptance 安装入口](安装与更新.md#安装-app-acceptance) · [样例与接入](../skills/app-acceptance/references/project-integration.md#运行随包样例) |
 | 调用技能或设置按任务读取入口 | [调用技能](安装与更新.md#调用技能) · [按任务默认使用](安装与更新.md#按任务默认使用) |
 | 确认技能在实际任务中生效 | [安装后的最小验收](安装与更新.md#安装后的最小验收) |
 | 了解任务执行、核验与恢复 | [工作流程](工作流程.md) |
 | 为诊断、任务安排、实施或代码审查选择工程方法 | [Matt Pocock 接入规则](../skills/work-eval/references/matt-pocock.md) |
 | 验证实际应用、核对性能或调查变更影响 | [pstack 验证与改进方法](../skills/work-eval/references/pstack.md) |
+| 验收前端、后端或联调变更，按需建立项目自己的验收流程 | [应用验收](../skills/app-acceptance/SKILL.md) |
 | 选择文档任务的处理方式 | [文档任务怎样处理](工作流程.md#文档任务怎样处理) |
 | 理解全局规则、用户级规范、技能与业务工作区 | [全局使用范围](全局使用范围.md) |
 | 核对来源、权限、文件保护与回修 | [执行、核验与恢复](../skills/work-eval/references/execution-and-recovery.md) |
