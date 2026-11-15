@@ -26,6 +26,4 @@ license: MIT
 
 ## 必要集合助手
 
-Playwright旅程可直接导入 [required-collection.cjs](scripts/required-collection.cjs) 的 `forEachRequired(locator, label, checkItem)`。它确认集合非空、每项可见，并逐项等待回调；返回实际检查数。业务所需精确列数、列名及字段关系继续用项目原生断言核对。合法空态使用单独预期；其它框架采用等价存在性检查。
-
-助手与[真实E2E样例](scripts/verify-example.cjs)只提供可复用检查与本技能自检，不替代目标项目的业务判据。样例使用真实HTML、Python HTTP、持久JSON和CSV，可检查正常链、缺表头、持久化丢失及正常恢复。
+Playwright 旅程需要复用非空、可见和逐项等待检查时，按[接入必要集合助手](references/project-integration.md#接入必要集合助手)导入附带助手。精确业务覆盖和合法空态继续使用项目判据；其他框架采用等价存在性检查。助手与[随包样例](references/project-integration.md#运行随包样例)的验证范围是可复用检查及本技能自检。
