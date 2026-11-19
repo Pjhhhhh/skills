@@ -1,17 +1,18 @@
 #!/usr/bin/env node
-/** 用真实浏览器、HTTP、持久记录和CSV验证样例及两项坏例；只回收本次进程。 @author Pjh */
+/** 用真实浏览器、HTTP、持久记录和 CSV 验证样例与坏例，只回收本次进程。 @author Pjh */
 'use strict';
 
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawn, spawnSync } = require('node:child_process');
+const { isDeepStrictEqual } = require('node:util');
 const { forEachRequired } = require('./required-collection.cjs');
 
 /** 在产生输出前核对调用参数，帮助只读取入口。 @author Pjh */
 function options(argv) {
     if (argv.length === 1 && argv[0] === '--help') {
-        console.log('用法：node verify-example.cjs --output <新的绝对目录> --playwright-module <已有模块绝对路径> [--case healthy|missing-header|lost-write|all]');
+        console.log('用法：node verify-example.cjs --output <新的绝对目录> --playwright-module <已有模块绝对路径> [--case healthy|missing-header|lost-write|wrong-record-id|all]');
         return null;
     }
     const values = { '--case': 'all' };
@@ -24,7 +25,7 @@ function options(argv) {
     for (const key of ['--output', '--playwright-module']) {
         if (!values[key] || !path.isAbsolute(values[key])) throw new Error(`${key}需要绝对路径`);
     }
-    if (!['healthy', 'missing-header', 'lost-write', 'all'].includes(values['--case'])) throw new Error('--case无效');
+    if (!['healthy', 'missing-header', 'lost-write', 'wrong-record-id', 'all'].includes(values['--case'])) throw new Error('--case无效');
     if (fs.existsSync(values['--output'])) throw new Error('输出目录已存在，需指定新目录以保留原件');
     return { output: values['--output'], module: values['--playwright-module'], selected: values['--case'] };
 }
@@ -89,6 +90,17 @@ async function runCase(chromium, output, name, mode) {
         assert.equal(response.status, 200, `${route}应成功`);
         return JSON.parse(body);
     }
+    /** 按可见行读取单元格，保留编号和名称的对应关系。 @author Pjh */
+    async function readPageRecords() {
+        const rows = await page.locator('#records-body').getByRole('row').all();
+        return Promise.all(rows.map(async row => {
+            const values = [];
+            await forEachRequired(row.getByRole('cell'), '记录列表行单元格', async cell => {
+                values.push(await cell.innerText());
+            });
+            return values;
+        }));
+    }
     try {
         server = await startServer(folder, mode);
         const ready = await server.ready;
@@ -128,21 +140,21 @@ async function runCase(chromium, output, name, mode) {
         created = JSON.parse(responseBody);
         assert.equal(created.name, recordName);
         assert.equal(typeof created.id, 'string');
-        await page.getByRole('cell', { name: recordName, exact: true }).waitFor({ state: 'visible' });
         result.createdRecord = created;
-        result.checks.push('表单新增的实际POST及页面结果');
+        await page.getByText('记录已受理', { exact: true }).waitFor({ state: 'visible' });
+        result.pageRecords = { afterCreate: await readPageRecords() };
+        result.checks.push('通过表单发起 POST 并读取受理记录');
         await page.screenshot({ path: path.join(folder, 'created.png'), fullPage: true });
 
         stage = 'persistence-readback';
-        // lost-write返回201并暂显记录；独立GET、刷新及持久文件仍须包含同一记录。
         await page.reload();
         await page.waitForFunction(() => document.querySelector('#load-state')?.dataset.loaded === 'true');
+        result.pageRecords.afterReload = await readPageRecords();
         const independent = await getJSON('/api/records');
         result.independentReadback = independent;
         assert.deepEqual(independent.records, [created], '持久终态缺少已受理记录');
-        assert.equal(await page.getByRole('cell', { name: recordName, exact: true }).count(), 1, '刷新后应显示同一记录');
         assert.deepEqual(JSON.parse(fs.readFileSync(path.join(folder, 'data/records.json'), 'utf8')), [created]);
-        result.checks.push('刷新、独立GET及持久文件同一记录');
+        result.checks.push('独立 GET 与持久文件均包含同一条受理记录');
 
         stage = 'export-file';
         const downloadPromise = page.waitForEvent('download');
@@ -156,6 +168,16 @@ async function runCase(chromium, output, name, mode) {
         result.csvRecords = JSON.parse(parsed.stdout);
         assert.deepEqual(result.csvRecords, [created]);
         result.checks.push('实际下载CSV并解析全部记录及特殊字符');
+
+        // 核完独立读回与导出再判定页面结果，才能证明错号只出现在显示层。
+        stage = 'page-record-identity';
+        const expectedPageRecords = [[created.id, created.name]];
+        assert.deepEqual(
+            result.pageRecords,
+            { afterCreate: expectedPageRecords, afterReload: expectedPageRecords },
+            '新增和刷新后的页面应显示已受理记录的编号与名称',
+        );
+        result.checks.push('新增和刷新后同一行的编号和名称均与受理记录一致');
         result.scenarioStatus = 'PASS';
     } catch (error) {
         result.failure = { stage, message: error.message, stack: error.stack };
@@ -176,7 +198,7 @@ async function runCase(chromium, output, name, mode) {
         assert.equal(result.captureError, undefined);
         assert.equal(result.browserCloseError, undefined);
         for (const file of ['final.png', 'trace.zip', 'network.json', 'data/records.json', 'data/http.jsonl']) assert.ok(fs.statSync(path.join(folder, file)).size > 0, `原件缺失：${file}`);
-        if (result.scenarioStatus === 'PASS') {
+        if (result.csvRecords) {
             assert.deepEqual(JSON.parse(fs.readFileSync(path.join(folder, 'data/records.json'), 'utf8')), [created]);
             assert.ok(fs.readFileSync(path.join(folder, 'records.csv'), 'utf8').includes(created.id));
         }
@@ -202,15 +224,20 @@ async function main() {
         { name: 'healthy', mode: 'healthy' },
         { name: 'missing-header', mode: 'missing-header', failureStage: 'required-headers', errorText: '必要对象集合为空：记录列表表头' },
         { name: 'lost-write', mode: 'lost-write', failureStage: 'persistence-readback', errorText: '持久终态缺少已受理记录' },
+        { name: 'wrong-record-id', mode: 'wrong-record-id', failureStage: 'page-record-identity', errorText: '新增和刷新后的页面应显示已受理记录的编号与名称' },
         { name: 'healthy-recovery', mode: 'healthy' },
     ].filter(value => args.selected === 'all' || value.name === args.selected);
     const cases = [];
     for (const definition of definitions) {
         const actual = await runCase(chromium, args.output, definition.name, definition.mode);
         const expected = definition.failureStage ? 'FAIL' : 'PASS';
-        const expectedOutcomeObserved = definition.failureStage
+        let expectedOutcomeObserved = definition.failureStage
             ? actual.scenarioStatus === 'FAIL' && actual.failure?.stage === definition.failureStage && actual.failure.message.includes(definition.errorText)
             : actual.scenarioStatus === 'PASS';
+        if (expectedOutcomeObserved && definition.mode === 'wrong-record-id') {
+            const wrongPageRecords = [[`${actual.createdRecord.id}-wrong`, actual.createdRecord.name]];
+            expectedOutcomeObserved = isDeepStrictEqual(actual.pageRecords, { afterCreate: wrongPageRecords, afterReload: wrongPageRecords });
+        }
         cases.push({ expectedScenarioStatus: expected, expectedFailureStage: definition.failureStage || null, expectedOutcomeObserved, ...actual });
     }
     const summary = { selected: args.selected, selfCheckStatus: cases.every(value => value.expectedOutcomeObserved && value.evidenceReadableAfterCleanup) ? 'PASS' : 'FAIL', cases };

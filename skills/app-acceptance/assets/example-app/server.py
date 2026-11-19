@@ -16,11 +16,11 @@ VERSION = "app-acceptance-example-v1"
 
 
 def main():
-    """绑定loopback动态端口；坏例只改变声明的表头或持久行为。 @author Pjh"""
+    """绑定本机动态端口，按场景模拟表头缺失、持久化丢失或页面编号错误。 @author Pjh"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-dir", required=True, type=Path)
     parser.add_argument("--port", type=int, default=0)
-    parser.add_argument("--mode", choices=["healthy", "missing-header", "lost-write"], default="healthy")
+    parser.add_argument("--mode", choices=["healthy", "missing-header", "lost-write", "wrong-record-id"], default="healthy")
     args = parser.parse_args()
     if not args.data_dir.is_absolute():
         parser.error("--data-dir需要新的绝对目录")
@@ -31,6 +31,12 @@ def main():
     html = Path(__file__).with_name("index.html").read_text(encoding="utf-8")
     if args.mode == "missing-header":
         html = re.sub(r"<thead>.*?</thead>", "", html, flags=re.S)
+    elif args.mode == "wrong-record-id":
+        html = html.replace(
+            "for (const value of [record.id, record.name]) {",
+            'for (const value of [record.id + "-wrong", record.name]) {',
+            1,
+        )
 
     class Handler(BaseHTTPRequestHandler):
         """使用同一公开契约记录实际请求，控制模式只在启动记录中披露。 @author Pjh"""

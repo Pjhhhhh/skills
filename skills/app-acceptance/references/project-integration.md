@@ -56,7 +56,7 @@ expect(await headers.allTextContents()).toEqual(['编号', '记录名称']);
 
 ## 运行随包样例
 
-附带的 [E2E 执行器](../scripts/verify-example.cjs) 使用真实 HTML、Python HTTP、持久 JSON 和 CSV，检查正常链、缺表头、持久化丢失及正常恢复。助手和样例提供可复用检查及本技能自检，目标项目的业务判据仍由有效要求确定。
+附带的 [E2E 执行器](../scripts/verify-example.cjs) 使用真实 HTML、Python HTTP、持久 JSON 和 CSV，检查正常链、缺表头、持久化丢失、页面编号错误及正常恢复。助手和样例提供可复用检查及本技能自检，目标项目的业务判据仍由有效要求确定。
 
 要求本机已有Node.js、Python 3、Playwright模块及其Chromium浏览器。使用已有依赖，不自动安装或下载。下面变量由调用者填入新的绝对路径，父输出目录需已存在；子进程继承调用者设置的临时目录。
 
@@ -70,16 +70,17 @@ node "$skill_dir/scripts/verify-example.cjs" \
   --output "$run_output" --playwright-module "$playwright_module" --case all
 ```
 
-`--help`只显示参数；`--case`接受`healthy`、`missing-header`、`lost-write`和`all`，默认`all`。已有输出目录拒绝覆盖。服务绑定127.0.0.1动态端口，运行器持有并回收自己的Python进程和浏览器，原始证据保留。
+`--help` 只显示参数。`--case` 接受 `healthy`、`missing-header`、`lost-write`、`wrong-record-id` 和 `all`，默认 `all`。已有输出目录拒绝覆盖。服务绑定 127.0.0.1 动态端口，运行器持有并回收自己的 Python 进程和浏览器，原始证据保留。
 
 | 场景 | 实际业务结果 | 检测自检要求 |
 | --- | --- | --- |
-| healthy | 默认空态保留两列表头，新增→POST→刷新→独立GET／持久文件→CSV完整链PASS | 正常检查通过，回收及原件读回完成。 |
+| healthy | 默认空态保留两列表头。新增和刷新后页面同一行的编号与名称均对应受理记录、独立 GET、持久文件及 CSV，完整链 PASS | 正常检查通过，回收及原件读回完成。 |
 | missing-header | 同一集合助手在记录表头处FAIL | `required-headers`阶段出现“必要对象集合为空：记录列表表头”。 |
 | lost-write | POST201、页面暂显，独立GET没有受理记录，FAIL | `persistence-readback`阶段出现“持久终态缺少已受理记录”。 |
+| wrong-record-id | 新增和刷新后页面名称正确，显示编号错误。实际 POST、独立 GET、持久文件和 CSV 一致，页面验收 FAIL | `page-record-identity` 断言失败，`pageRecords` 保存两次实际读取，两次均观察到只改变编号的目标坏状态。 |
 | healthy-recovery | 新数据目录上用同一断言完整PASS | 判据未降低、坏例没有污染恢复链。 |
 
-单场景按实际结果退出：正常成功为0，坏例实际失败为1，参数或依赖错误为2。`all`顺序执行上表四例，`result.json`保留每例的`scenarioStatus`和单独的`expectedOutcomeObserved`；仅正常链通过、两个坏例在对应断言失败、恢复链通过且证据及回收完成时，`selfCheckStatus`为PASS并退出0。坏例自身始终保留FAIL。
+单场景业务通过且原件可读时退出 0，场景运行失败时退出 1。参数解析或 Playwright 模块加载等在场景开始前中止时退出 2。用 `result.json` 的 `failure.stage` 和 `expectedOutcomeObserved` 区分环境故障与目标坏例。`all` 顺序执行上表五例。正常链和恢复链通过、三个坏例在对应断言被检出，且证据可读及资源已回收时，`selfCheckStatus` 为 PASS 并退出 0。三个坏例的实际业务状态均为 FAIL。
 
 每例包含版本／PID／URL、网络原件、Python日志、请求审计、持久JSON、截图、trace和适用的CSV。失败保留已完成动作及具体断言；回收不删除证据。本样例证明所用环境下这些检查实际可执行，不代表所有框架或目标项目已经通过。
 
@@ -92,7 +93,7 @@ python3 "$skill_dir/assets/example-app/server.py" \
   --data-dir '<新的绝对数据目录>' --mode healthy --port 0
 ```
 
-启动stdout首行JSON给出`url`、`pid`、`version`、`mode`、`dataDir`。公开契约为`GET /health`返回版本和PID，`GET /api/records`返回`{"records": []}`；`POST /api/records`接受`{"name":"记录名称"}`，名称去首尾空白后1至80字符，成功201返回`{"id":"UUID字符串","name":"记录名称"}`，输入无效400；`GET /api/records.csv`下载UTF-8的`id,name`两列CSV。健康模式写入`dataDir/records.json`；`lost-write`模式保持同一成功响应但不持久化；请求审计在`dataDir/http.jsonl`。控制器按自己持有的进程句柄结束服务，数据和审计继续保留。
+启动标准输出首行 JSON 给出 `url`、`pid`、`version`、`mode`、`dataDir`。`GET /health` 返回版本和 PID。`GET /api/records` 在 `records` 字段中返回当前记录，无记录时返回空数组。`POST /api/records` 接受 `{"name":"记录名称"}`，名称去除首尾空白后须为 1 至 80 字符，成功时以 201 返回 `{"id":"UUID字符串","name":"记录名称"}`，输入无效时返回 400。`GET /api/records.csv` 下载 UTF-8 的 `id,name` 两列 CSV。健康模式写入 `dataDir/records.json`。`lost-write` 模式保留成功响应，遗漏持久化。`wrong-record-id` 模式只改变页面显示编号。请求审计写入 `dataDir/http.jsonl`。控制器按自己持有的进程句柄结束服务，数据和审计继续保留。
 
 ## 方法取舍
 
