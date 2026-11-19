@@ -25,12 +25,12 @@ python3 /实际技能目录/scripts/work_eval.py score 任务要求文件 评审
 
 ## 维护项目内的 Stop 实验
 
-`arm`、`release`、`hook` 用于已获授权的局部实验，须在含 `.skills-root` 和标准源码目录的完整维护仓库内调用。
+`arm`、`release`、`hook` 用于已获授权的局部实验。使用含 `.skills-root` 的完整维护仓库里的 `skills/work-eval/scripts/work_eval.py`，启动目录也须位于该仓库内。指向仓库源码的符号链接可以解析到同一脚本；独立安装的复制副本用于 `score`。
 
 ### 登记本轮任务
 
 ```sh
-python3 /实际技能目录/scripts/work_eval.py arm 任务要求文件 --session 实际会话ID --turn 实际轮次ID --cwd 启动目录
+python3 /维护仓库根/skills/work-eval/scripts/work_eval.py arm 任务要求文件 --session 实际会话ID --turn 实际轮次ID --cwd 启动目录
 ```
 
 成功后输出 `armed: true`，写入启动目录的 `.codex/work-eval/实际会话ID/active.json`。核对其中的输入路径、会话和轮次；同轮重新登记时沿用已使用的续跑次数。登记失败时，按错误详情核对输入文件、会话与轮次、启动目录及仓库布局。
@@ -38,7 +38,7 @@ python3 /实际技能目录/scripts/work_eval.py arm 任务要求文件 --sessio
 ### 保留未完成退出
 
 ```sh
-python3 /实际技能目录/scripts/work_eval.py release --session 实际会话ID --turn 实际轮次ID --cwd 启动目录 --reason external_block --detail 具体阻碍和恢复条件
+python3 /维护仓库根/skills/work-eval/scripts/work_eval.py release --session 实际会话ID --turn 实际轮次ID --cwd 启动目录 --reason external_block --detail 具体阻碍和恢复条件
 ```
 
 使用已登记的会话和轮次，`--reason` 可选 `user_stop`、`external_block` 或 `hard_budget`，`--detail` 填写原因与恢复条件。成功后输出 `released_unfinished: true`，在 `active.json` 写入 `release`，保留报告和未完成项；失败时按错误详情核对登记状态、轮次与原因。
@@ -46,7 +46,7 @@ python3 /实际技能目录/scripts/work_eval.py release --session 实际会话I
 ### 检查 Stop 协议
 
 ```sh
-python3 /实际技能目录/scripts/work_eval.py hook
+python3 /维护仓库根/skills/work-eval/scripts/work_eval.py hook
 ```
 
 从标准输入传入 JSON 事件。检查 Stop 时，事件使用 `hook_event_name: "Stop"`，并提供与登记状态匹配的 `session_id`、`turn_id` 和 `cwd`。

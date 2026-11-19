@@ -38,7 +38,9 @@ task_type 为 code / document / computer / research / mixed；至少一项 requi
 
 coverage、integrity、scope、binding、protocol 为保留 ID；criterion 和 claim 的 ID 互不重复。推荐必要项用 C1、关键主张用 F1，便于分别定位缺口及下一动作。
 
-scope.allowed_actions 记录业务文件写入、删除、命令执行、安装、发送与发布，operation 为 write / delete / execute / install / send / publish。target 是精确目标；write/delete 必须用规范化绝对路径。request_quote 引用原请求中支持该操作的单行文字。评审者依据原话核对授权和操作必要性；纯只读任务可使用空允许列表。验收器自身的状态和报告写入另行处理，业务输出及额外副作用均须计入业务操作。
+scope.allowed_actions 记录业务文件写入、删除、命令执行、安装、发送与发布，operation 为 write / delete / execute / install / send / publish。target 填精确目标。write/delete 使用规范化绝对路径，execute 使用精确命令，install/send/publish 使用精确对象。request_quote 引用原请求中支持该操作的单行文字。评审者依据原话核对授权和操作必要性；纯只读任务可使用空允许列表。验收器自身的状态和报告写入另行处理，业务输出及额外副作用均须计入业务操作。
+
+填写 `scope.allowed_actions` 和评审的 `scope.actions` 前，用 `Path.resolve()` 检查文件操作的目标。macOS 上经 `/tmp` 或 `/var` 访问时，填写解析所得的 `/private/tmp/...` 或 `/private/var/...` 真实路径。
 
 脚本核对引文是否存在、操作和目标是否匹配。任务要求文件遗漏必要操作时，先核对已有授权，再更新文件并重新评审；需要新业务选择或权限时，只暂停依赖部分。
 

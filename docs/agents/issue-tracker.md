@@ -33,6 +33,6 @@
 - 探索状态：`Status: open`、`Status: claimed` 或 `Status: resolved`；此处是探索生命周期，分诊标签按前述映射处理。
 - 依赖：`Blocked by: NN, NN`；所有被依赖任务均为 `resolved` 后，任务才解除阻塞。
 
-选择任务时，扫描 issues 目录中状态为 open、依赖已解决的任务，按编号选择第一项。
+采用用户指定的子任务，并核对其依赖是否就绪。用户未指定时，按编号选取首个状态为 `open` 且依赖已解决的子任务。
 开始工作前保存 `Status: claimed`。
 解决后将答案追加到 `## Answer`，保存 `Status: resolved`，再将结论摘要与子任务链接追加到地图的 Decisions-so-far。
